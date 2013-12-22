@@ -33,7 +33,6 @@ Module Module1
                 Dim circlecount As Integer = 0
                 While currenttime + timingpoints(timingpoints.Count - 1).BPMDelay / 2 < timetomap
                     Console.WriteLine("Current map time: " & currenttime)
-                    AdvanceTime(currenttime, timingpoints, 1)
                     Dim hc As New CircleInfo
                     Dim pt As Point = GetNextPoint()
                     hc.X = pt.X
@@ -48,12 +47,13 @@ Module Module1
                     hc.Effect = CircleInfo.EffectType.None
                     bm.HitObjects.Add(hc)
                     circlecount += 1
+                    AdvanceTime(currenttime, timingpoints, 1)
                 End While
                 bm.Save(ofd.FileName)
             End If
+            Console.WriteLine("Beatmap generated! Have fun!")
+            Console.ReadKey()
         End Using
-        Console.WriteLine("Beatmap generated! Have fun!")
-        Console.ReadKey()
     End Sub
     Sub AdvanceTime(ByRef currenttime As Double, ByVal timingpoints As List(Of TimingPointInfo), ByVal beats As Integer)
         For beat = 1 To beats
