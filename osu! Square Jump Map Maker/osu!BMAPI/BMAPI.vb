@@ -640,6 +640,9 @@ Namespace BMAPI
         End Sub
 
         Public Sub Save(ByVal filename As String)
+            Dim lastculture As Globalization.CultureInfo = Threading.Thread.CurrentThread.CurrentCulture
+            Threading.Thread.CurrentThread.CurrentCulture = New Globalization.CultureInfo("en-US", False)
+
             Save("", "osu file format v" & Info.Format)
             Dim newfields() As FieldInfo = Me.GetType.GetFields()
             Dim oldfields() As FieldInfo = Info.GetType.GetFields()
@@ -797,6 +800,7 @@ Namespace BMAPI
                 Next
             Next
             FinishSave(filename)
+            Threading.Thread.CurrentThread.CurrentCulture = lastculture
         End Sub
 
         Private Sub Save(ByVal section As String, ByVal contents As String)

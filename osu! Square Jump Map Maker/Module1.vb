@@ -30,7 +30,6 @@ Module Module1
                 Dim timetomap As Integer = timingpoints(timingpoints.Count - 1).Time - timingpoints(0).Time
                 Console.WriteLine("Processing beatmap...")
                 Dim currenttime As Double = timingpoints(0).Time
-                'AdvanceTime(currenttime, timingpoints, 3)
                 Dim circlecount As Integer = 0
                 While currenttime + timingpoints(timingpoints.Count - 1).BPMDelay / 2 < timetomap
                     Console.WriteLine("Current map time: " & currenttime)
