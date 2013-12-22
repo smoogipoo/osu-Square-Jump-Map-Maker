@@ -1,4 +1,4 @@
-osu! Jump Map Maker
+osu! Square Jump Map Maker
 ===================
 
 I wanted to map many songs throughout the years I've played osu!; however I failed in doing so due to the amount of time it took and my design creativity level (very low). At the same time there were no maps available for the songs from other mappers.
