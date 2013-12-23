@@ -1,60 +1,245 @@
 ﻿Imports osu__Square_Jump_Map_Maker.BMAPI
 Imports System.Windows.Forms
 Imports System.Drawing
-
 Module Module1
     Dim rnd As New Random
+    Dim sq_minlength As Integer = 100
+    Dim sq_maxlength As Integer = 300
+    Dim sq_timesig As TimeSignature = TimeSignature.MapDefined
+    Dim sq_consttimesig As Integer = 4
+    Public Enum TimeSignature
+        MapDefined = 0
+        Constant = 1
+        Random = 2
+    End Enum
 
     Sub Main()
-        Console.WriteLine("Select the timed beatmap file")
-        Using ofd As New OpenFileDialog
-            If ofd.ShowDialog = DialogResult.OK Then
-                Dim bm As New Beatmap(ofd.FileName)
-                bm.StackLeniency = 0.2
-                Dim timingpoints As New List(Of TimingPointInfo)
-                For Each tp As TimingPointInfo In bm.TimingPoints
-                    If tp.isInherited = False Then
-                        timingpoints.Add(tp)
-                    End If
-                Next
-                If timingpoints.Count = 0 Then
-                    Console.WriteLine("No timing points exist in the beatmap. At least one timing point is required for mapping to take place.")
-                    Console.ReadKey()
-                    Exit Sub
-                End If
-                If timingpoints.Count < 2 Then
-                    Console.WriteLine("Generating maps requires a control point at the first beat and the last beat of the map, please add this manually in the map editor.")
-                    Console.ReadKey()
-                    Exit Sub
-                End If
-                Dim timetomap As Integer = timingpoints(timingpoints.Count - 1).Time - timingpoints(0).Time
-                Console.WriteLine("Processing beatmap...")
-                Dim currenttime As Double = timingpoints(0).Time
-                Dim circlecount As Integer = 0
-                While currenttime + timingpoints(timingpoints.Count - 1).BPMDelay / 2 < timetomap
-                    Console.WriteLine("Current map time: " & currenttime)
-                    Dim hc As New CircleInfo
-                    Dim pt As Point = GetNextPoint()
-                    hc.X = pt.X
-                    hc.Y = pt.Y
-                    If circlecount = 8 Then
-                        hc.NewCombo = True
-                        circlecount = 0
-                    Else
-                        hc.NewCombo = False
-                    End If
-                    hc.StartTime = CInt(currenttime)
-                    hc.Effect = CircleInfo.EffectType.None
-                    bm.HitObjects.Add(hc)
-                    circlecount += 1
-                    AdvanceTime(currenttime, timingpoints, 1)
-                End While
-                bm.Save(ofd.FileName)
+1:      sq_minlength = My.Settings.s_minlength
+        sq_maxlength = My.Settings.s_maxlength
+        sq_timesig = My.Settings.s_timesig
+        sq_consttimesig = My.Settings.s_consttimesig
+        Console.Clear()
+        Console.ForegroundColor = ConsoleColor.White
+        Console.WriteLine("osu! Square Jump Map Maker version " & Application.ProductVersion.Substring(0, Application.ProductVersion.LastIndexOf(".")))
+        Console.WriteLine("Minimum length: " & sq_minlength)
+        Console.WriteLine("Maximum length: " & sq_maxlength)
+        If sq_timesig = TimeSignature.Constant Then
+            Console.WriteLine("Timesignature setting: " & sq_timesig.ToString & " @ " & sq_consttimesig & "/4")
+        Else
+            Console.WriteLine("Timesignature setting: " & sq_timesig.ToString)
+        End If
+6:      Console.WriteLine()
+        Console.ForegroundColor = ConsoleColor.Red
+        Console.WriteLine("Press [0] to change settings")
+        Console.WriteLine("Press [1] to generate beatmap")
+        Console.ForegroundColor = ConsoleColor.White
+        Dim ki As ConsoleKeyInfo = Console.ReadKey
+        If ki.Key = ConsoleKey.D0 Then
+2:          Console.Clear()
+            Console.WriteLine("Minimum length: " & sq_minlength)
+            Console.WriteLine("Maximum length: " & sq_maxlength)
+            If sq_timesig = TimeSignature.Constant Then
+                Console.WriteLine("Timesignature setting: " & sq_timesig.ToString & " @ " & sq_consttimesig & "/4")
+            Else
+                Console.WriteLine("Timesignature setting: " & sq_timesig.ToString)
             End If
-            Console.WriteLine("Beatmap generated! Have fun!")
-            Console.ReadKey()
-        End Using
+            Console.WriteLine()
+            Console.ForegroundColor = ConsoleColor.Red
+            Console.WriteLine("Press [1] to change minimum length")
+            Console.WriteLine("Press [2] to change maximum length")
+            Console.WriteLine("Press [3] to change timesignature setting")
+            Console.WriteLine("Press [0] to reset settings to default")
+            Console.WriteLine("Press any other key to go back")
+            Console.WriteLine()
+            Console.ForegroundColor = ConsoleColor.White
+            ki = Console.ReadKey
+            If ki.Key = ConsoleKey.D1 Then
+3:              Console.Clear()
+                Console.ForegroundColor = ConsoleColor.Green
+                Console.WriteLine("Current minimum length: " & sq_minlength)
+                Console.WriteLine()
+                Console.ForegroundColor = ConsoleColor.White
+                Console.WriteLine("Enter the minimum length:")
+                Dim s As String = Console.ReadLine
+                If IsNumeric(s) Then
+                    If s > 0 Then
+                        sq_minlength = CInt(s)
+                        My.Settings.s_minlength = CInt(s)
+                        My.Settings.Save()
+                        GoTo 2
+                    Else
+                        GoTo 3
+                    End If
+                Else
+                    GoTo 3
+                End If
+            ElseIf ki.Key = ConsoleKey.D2 Then
+4:              Console.Clear()
+                Console.ForegroundColor = ConsoleColor.Green
+                Console.WriteLine("Current maximum length: " & sq_maxlength)
+                Console.WriteLine()
+                Console.ForegroundColor = ConsoleColor.White
+                Console.WriteLine("Enter the maximum length:")
+                Dim s As String = Console.ReadLine
+                If IsNumeric(s) Then
+                    If s > 0 Then
+                        sq_maxlength = CInt(s)
+                        My.Settings.s_maxlength = CInt(s)
+                        My.Settings.Save()
+                        GoTo 2
+                    Else
+                        GoTo 4
+                    End If
+                Else
+                    GoTo 4
+                End If
+            ElseIf ki.Key = ConsoleKey.D3 Then
+5:              Console.Clear()
+                Console.ForegroundColor = ConsoleColor.Green
+                If sq_timesig = TimeSignature.Constant Then
+                    Console.WriteLine("Current setting: " & sq_timesig.ToString & " @ " & sq_consttimesig & "/4")
+                Else
+                    Console.WriteLine("Current setting: " & sq_timesig.ToString)
+                End If
+                Console.WriteLine()
+                Console.ForegroundColor = ConsoleColor.White
+                Console.WriteLine("Possible options:")
+                Console.WriteLine("[1] - Map Defined (Use the control point time signature)")
+                Console.WriteLine("[2] - Constant (Set a constant time signature)")
+                Console.WriteLine("[3] - Random (Repeats in a random time signature of 1-4 beats)")
+                Console.WriteLine("Press any other key to go back")
+                Console.WriteLine()
+                Console.WriteLine("Enter your selection:")
+                ki = Console.ReadKey
+                If ki.Key = ConsoleKey.D1 Then
+                    sq_timesig = TimeSignature.MapDefined
+                    My.Settings.s_timesig = TimeSignature.MapDefined
+                    My.Settings.Save()
+                    GoTo 2
+                ElseIf ki.Key = ConsoleKey.D2 Then
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.WriteLine()
+                    Console.WriteLine("Write the number of beats per measure (i.e. 3 for 3/4 or 4 for 4/4)")
+                    Dim s As String = Console.ReadLine
+                    If IsNumeric(s) Then
+                        If s > 0 Then
+                            sq_timesig = TimeSignature.Constant
+                            My.Settings.s_timesig = TimeSignature.Constant
+                            sq_consttimesig = CInt(s)
+                            My.Settings.s_consttimesig = CInt(s)
+                            My.Settings.Save()
+                            GoTo 2
+                        Else
+                            GoTo 5
+                        End If
+                    Else
+                        GoTo 5
+                    End If
+                ElseIf ki.Key = ConsoleKey.D3 Then
+                    sq_timesig = TimeSignature.Random
+                    My.Settings.s_timesig = TimeSignature.Random
+                    My.Settings.Save()
+                    GoTo 2
+                Else
+                    GoTo 2
+                End If
+            ElseIf ki.Key = ConsoleKey.D0 Then
+                My.Settings.s_minlength = 100
+                My.Settings.s_maxlength = 300
+                My.Settings.s_timesig = TimeSignature.MapDefined
+                My.Settings.s_consttimesig = 4
+                My.Settings.Save()
+                sq_minlength = 100
+                sq_maxlength = 300
+                sq_timesig = TimeSignature.MapDefined
+                sq_consttimesig = 4
+                GoTo 2
+            Else
+                GoTo 1
+            End If
+        ElseIf ki.Key = ConsoleKey.D1 Then
+            Console.Clear()
+            Console.WriteLine("Select the timed beatmap file")
+            Using ofd As New OpenFileDialog
+                If ofd.ShowDialog = DialogResult.OK Then
+                    Console.Clear()
+                    Dim bm As New Beatmap(ofd.FileName)
+                    Dim timingpoints As New List(Of TimingPointInfo)
+                    For Each tp As TimingPointInfo In bm.TimingPoints
+                        If tp.isInherited = False Then
+                            timingpoints.Add(tp)
+                        End If
+                    Next
+                    If timingpoints.Count < 2 Then
+                        Console.WriteLine("Generating maps requires a control point at the first beat and the last beat of the map, please add this manually in the map editor.")
+                        GoTo 6
+                    End If
+                    Dim timetomap As Integer = timingpoints(timingpoints.Count - 1).Time - timingpoints(0).Time
+                    Console.WriteLine("Processing beatmap...")
+                    Dim currenttime As Double = timingpoints(0).Time
+                    Dim circlecount As Integer = 0
+                    While currenttime + timingpoints(timingpoints.Count - 1).BPMDelay / 2 < timetomap
+                        Console.SetCursorPosition(0, 1)
+                        Console.Write("Current map time: " & currenttime)
+                        Dim hc As New CircleInfo
+                        Dim maxcircles As Integer
+                        If sq_timesig = TimeSignature.MapDefined Then
+                            maxcircles = 2 * GetCurrentTS(currenttime, timingpoints)
+                        ElseIf sq_timesig = TimeSignature.Constant Then
+                            maxcircles = 2 * maxcircles
+                        ElseIf sq_timesig = TimeSignature.Random Then
+                            maxcircles = 4 * GetRandomTS()
+                        End If
+
+                        Dim pt As Point = GetNextPoint(maxcircles)
+                        hc.X = pt.X
+                        hc.Y = pt.Y
+                        If circlecount = maxcircles Then
+                            hc.NewCombo = True
+                            circlecount = 0
+                        Else
+                            hc.NewCombo = False
+                        End If
+                        hc.StartTime = CInt(currenttime)
+                        hc.Effect = CircleInfo.EffectType.None
+                        bm.HitObjects.Add(hc)
+                        circlecount += 1
+                        AdvanceTime(currenttime, timingpoints, 1)
+                    End While
+                    bm.Save(ofd.FileName)
+                    Console.WriteLine()
+                    Console.WriteLine("Beatmap generated!")
+                    GoTo 6
+                Else
+                    GoTo 1
+                End If
+            End Using
+        End If
     End Sub
+    Dim sq_lastrandomts As Integer
+    Function GetRandomTS() As Integer
+        If sq_points.Count = sq_lastrandomts * 4 Then
+            sq_lastrandomts = sq_r.Next(1, 5)
+            Return sq_lastrandomts
+        Else
+            Return sq_lastrandomts
+        End If
+    End Function
+    Function GetCurrentTS(ByVal currenttime As Double, ByVal timingpoints As List(Of TimingPointInfo))
+        If timingpoints.Count = 1 Then
+            Return timingpoints(0).TimeSignature
+        ElseIf timingpoints(timingpoints.Count - 1).Time <= currenttime Then
+            Return timingpoints(timingpoints.Count - 1).TimeSignature
+        Else
+            For Each tp In timingpoints
+                If tp.Time > currenttime Then
+                    Return timingpoints(timingpoints.IndexOf(tp) - 1).TimeSignature
+                    Exit For
+                End If
+            Next
+        End If
+        Return 4
+    End Function
     Sub AdvanceTime(ByRef currenttime As Double, ByVal timingpoints As List(Of TimingPointInfo), ByVal beats As Integer)
         For beat = 1 To beats
             Dim advanceamount As Double = 0
@@ -66,7 +251,7 @@ Module Module1
                 For Each tp In timingpoints
                     If tp.Time > currenttime Then
                         advanceamount = timingpoints(timingpoints.IndexOf(tp) - 1).BPMDelay / 2
-                    Exit For
+                        Exit For
                     End If
                 Next
             End If
@@ -80,14 +265,13 @@ Module Module1
     Dim sq_pointcount As Integer = 0
     Dim sq_points As New List(Of Point)
     Dim sq_r As New Random
-    Function GetNextPoint() As Point
+    Function GetNextPoint(ByVal maxpoints As Integer) As Point
         If sq_points.Count = 0 Then
-            Dim repeatcount As Integer = sq_r.Next(1, 4)
             Dim b_left, b_right, b_top, b_bot As Integer
 A:
             sq_startpoint = New Point(sq_r.Next(50, 462), sq_r.Next(50, 334))
-            sq_length = sq_r.Next(100, 300)
-            sq_angle = sq_r.Next(0, 360) * Math.PI / 180
+            sq_length = sq_r.Next(sq_minlength, sq_maxlength)
+            sq_angle = sq_r.Next(-180, 180) * Math.PI / 180
 
             Dim p1 As Point = sq_startpoint
             Dim p2 As New Point(p1.X + sq_length * Math.Cos(sq_angle), p1.Y - sq_length * Math.Sin(sq_angle))
@@ -147,11 +331,25 @@ A:
                 GoTo A
             End If
 
-            For i = 1 To repeatcount
-                sq_points.Add(p1)
-                sq_points.Add(p2)
-                sq_points.Add(p3)
-                sq_points.Add(p4)
+            If sq_r.Next(0, 2) = 0 Then
+                'Anticlockwise
+                While sq_points.Count < maxpoints
+                    sq_points.Add(p1)
+                    sq_points.Add(p2)
+                    sq_points.Add(p3)
+                    sq_points.Add(p4)
+                End While
+            Else
+                'Clockwise
+                While sq_points.Count < maxpoints
+                    sq_points.Add(p1)
+                    sq_points.Add(p4)
+                    sq_points.Add(p3)
+                    sq_points.Add(p2)
+                End While
+            End If
+            For i = 0 To sq_points.Count - maxpoints - 1
+                sq_points.RemoveAt(sq_points.Count - 1)
             Next
         End If
         Dim tempp As Point = sq_points(0)

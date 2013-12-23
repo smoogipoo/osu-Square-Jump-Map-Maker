@@ -53,6 +53,54 @@ Namespace My
                 Return defaultInstance
             End Get
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("100")>  _
+        Public Property s_minlength() As Integer
+            Get
+                Return CType(Me("s_minlength"),Integer)
+            End Get
+            Set
+                Me("s_minlength") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("300")>  _
+        Public Property s_maxlength() As String
+            Get
+                Return CType(Me("s_maxlength"),String)
+            End Get
+            Set
+                Me("s_maxlength") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("0")>  _
+        Public Property s_timesig() As Integer
+            Get
+                Return CType(Me("s_timesig"),Integer)
+            End Get
+            Set
+                Me("s_timesig") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("4")>  _
+        Public Property s_consttimesig() As Integer
+            Get
+                Return CType(Me("s_consttimesig"),Integer)
+            End Get
+            Set
+                Me("s_consttimesig") = value
+            End Set
+        End Property
     End Class
 End Namespace
 
